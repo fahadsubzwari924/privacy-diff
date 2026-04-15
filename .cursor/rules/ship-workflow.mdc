@@ -1,0 +1,112 @@
+---
+description: Mandatory Git shipping workflow — executed every time a feature, improvement, or bugfix is shipped
+globs: "**/*"
+alwaysApply: true
+---
+
+# Ship Workflow (non-negotiable)
+
+**Trigger:** any request to ship, release, open a PR, or deliver a feature / improvement / bugfix.
+
+Execute every step below **in order**. Do not skip, reorder, or shortcut any step.
+
+## Step 1 — Stash current changes
+
+```bash
+git stash push -m "wip: pre-ship stash"
+```
+
+Confirm the stash was created before proceeding. If nothing to stash, continue.
+
+## Step 2 — Checkout master and pull latest
+
+```bash
+git checkout master
+git pull origin master
+```
+
+The local `master` must be fully up to date before creating a branch.
+
+## Step 3 — Create a new branch from master
+
+Branch naming convention: `<type>/<short-kebab-description>`
+
+| Change type | Prefix |
+|-------------|--------|
+| Feature | `feat/` |
+| Bug fix | `fix/` |
+| Improvement / refactor | `improve/` |
+| Chore / infra | `chore/` |
+
+```bash
+git checkout -b <type>/<short-kebab-description>
+```
+
+## Step 4 — Pop the stash
+
+```bash
+git stash pop
+```
+
+If conflicts arise after `stash pop`:
+
+1. **Stop** — do not proceed.
+2. List every conflicted file with `git status`.
+3. Present each conflict to the user and ask them to resolve it.
+4. After the user confirms all conflicts are resolved, stage the files (`git add`) and continue.
+
+## Step 5 — Quality gate (all must pass before PR)
+
+Run each command in sequence. **Fix any error before running the next command.**
+
+```bash
+# 1. Linting
+npm run lint
+
+# 2. Build
+npm run build
+
+# 3. Tests
+npm run test
+```
+
+Rules for this step:
+
+- If `npm run lint` reports errors → fix them. Do not suppress or skip.
+- If `npm run build` fails → fix compilation/type errors. Do not open a PR with a broken build.
+- If `npm run test` fails → fix the failing tests or document the gap with the user's explicit approval.
+- Never use `--force`, `--no-verify`, or any flag that bypasses these checks.
+
+## Step 6 — Commit and open the PR
+
+Stage and commit all changes with a conventional commit message:
+
+```bash
+git add .
+git commit -m "<type>(<scope>): <concise description>"
+git push -u origin HEAD
+```
+
+Then create the PR:
+
+```bash
+gh pr create \
+  --base master \
+  --title "<type>(<scope>): <concise description>" \
+  --body "$(cat <<'EOF'
+## Summary
+- <bullet point describing what changed and why>
+
+## Test plan
+- [ ] lint passes
+- [ ] build passes
+- [ ] tests pass
+EOF
+)"
+```
+
+Return the PR URL to the user.
+
+---
+
+**This workflow is mandatory.** Any deviation requires explicit written approval from the user in the current conversation.

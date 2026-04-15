@@ -2,3 +2,37 @@
 # --- ai-dev-setup: vendor (managed) ---
 /vendor/
 # --- end ai-dev-setup vendor ---
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Playwright
+/test-results/
+/playwright-report/
+
+# Tracker data (generated at build time)
+apps/crawler/src/data/tracker-map.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
