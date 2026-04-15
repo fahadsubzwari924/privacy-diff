@@ -20,20 +20,36 @@ export type BlockedRequest = {
 };
 
 /**
- * Aggregated data per tracker owner (e.g. "Google LLC").
+ * Per-session crawl metrics captured during a single Playwright browser context.
  */
-export type TrackerOwnerSummary = {
-  owner: string;
-  category: string;
+export type SessionMetrics = {
   requestCount: number;
-  domains: string[];
+  totalBytes: number;
+  loadTimeMs: number;
 };
 
 /**
- * The full analysis result produced by the crawler.
+ * Aggregated metrics for one tracker owner (e.g. "Google LLC") across domains.
+ */
+export type TrackerOwnerSummary = {
+  owner: string;
+  primaryCategory: string;
+  requestCount: number;
+  domains: string[];
+  allCategories: string[];
+};
+
+/**
+ * Full comparison result from the crawler (unprotected vs protected session).
  */
 export type AnalysisResult = {
   url: string;
+  finalUrl: string;
+  pageTitle: string;
+  /** True when one of the two Playwright sessions failed; data from the failed side is zeroed. */
+  partial: boolean;
+  unprotected: SessionMetrics;
+  protected: SessionMetrics;
   totalRequests: number;
   blockedRequests: number;
   bytesSaved: number;
@@ -45,7 +61,7 @@ export type AnalysisResult = {
 };
 
 /**
- * Payload sent from apps/web → apps/crawler to kick off a crawl job.
+ * Payload sent from apps/web to apps/crawler to start a crawl job.
  */
 export type CrawlRequest = {
   url: string;
@@ -54,13 +70,13 @@ export type CrawlRequest = {
 };
 
 /**
- * Payload sent from apps/crawler → apps/web when a crawl completes.
+ * Callback payload from apps/crawler to apps/web when a crawl finishes or errors.
  */
 export type CrawlCallback =
-  | { reportId: string; status: "done"; data: AnalysisResult }
-  | { reportId: string; status: "error"; error: string };
+  | { reportId: string; status: 'done'; data: AnalysisResult }
+  | { reportId: string; status: 'error'; error: string };
 
 /**
- * Report status as persisted in the database.
+ * Report lifecycle status as persisted in the database.
  */
-export type ReportStatus = "queued" | "running" | "done" | "error";
+export type ReportStatus = 'queued' | 'running' | 'done' | 'error';

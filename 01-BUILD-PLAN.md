@@ -20,7 +20,7 @@
 - [x] **Spec 02** — Tracker Radar data ingested and queryable — _notes: DuckDuckGo android-tds.json fetched at build time, 3,092 tracker entries normalized into O(1) lookup map, shared package exports lookupTracker() with suffix-matching_
 
 ### Backend
-- [ ] **Spec 03** — Crawler service runs diff and returns JSON — _notes:_
+- [x] **Spec 03** — Crawler service runs diff and returns JSON — _notes: Express.js service with POST /crawl, dual Playwright sessions (protected + unprotected), tracker blocking via request interception, webhook callbacks with exponential backoff, SSRF protection, concurrency limits, 27/27 unit tests passing_
 - [ ] **Spec 04** — Postgres schema created, reports persist — _notes:_
 - [ ] **Spec 05** — API routes work end-to-end — _notes:_
 

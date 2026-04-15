@@ -12,6 +12,7 @@ alwaysApply: true
 - Run `npm run lint` before hand-off; fix or explain waivers
 - Do not commit secrets or log tokens/PII
 - Touch tests when behavior changes (`npm run test`) or document the gap
+- **Types in dedicated files:** All `export type` / `export interface` must live in `types.ts` (or domain-specific type file), never in implementation files. Import types, don't export from impl.
 
 ## Docs — read before acting, not after
 
