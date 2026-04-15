@@ -3,6 +3,8 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
 > **Agency role:** `@agency-backend-architect.mdc` — prepend this to every implementation task prompt.
+>
+> **Commit policy:** Do NOT commit after each task. Stop at every `✋ Review checkpoint`, present what was built, and wait for explicit user confirmation before continuing. All commits and the PR happen only when the user says "ship".
 
 **Goal:** Implement `POST /crawl` on the Express crawler service — dual Playwright sessions, tracker-blocking diff, `AnalysisResult` output, async webhook callback to the web app.
 
@@ -113,12 +115,7 @@ cd packages/shared && npx tsc --noEmit
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
-
-```bash
-git add packages/shared/src/types.ts
-git commit -m "feat(shared): add SessionMetrics, enrich AnalysisResult with per-session data"
-```
+- [ ] **Step 3: ✋ Review checkpoint — Task 1 complete. Confirm before continuing to Task 2.**
 
 ---
 
@@ -223,12 +220,7 @@ cd apps/crawler && npx tsc --noEmit
 
 Expected: no errors.
 
-- [ ] **Step 6: Commit**
-
-```bash
-git add apps/crawler/src/logger.ts apps/crawler/src/errors/index.ts apps/crawler/src/constants/index.ts apps/crawler/package.json
-git commit -m "feat(crawler): add logger, typed errors, crawl constants, and vitest"
-```
+- [ ] **Step 6: ✋ Review checkpoint — Task 2 complete. Confirm before continuing to Task 3.**
 
 ---
 
@@ -315,12 +307,7 @@ cd apps/crawler && npx vitest run src/security/ssrf-guard.test.ts
 
 Expected: PASS (note: the `localhost` test resolves to `127.0.0.1` which matches the `127.x` pattern).
 
-- [ ] **Step 5: Commit**
-
-```bash
-git add apps/crawler/src/security/ssrf-guard.ts apps/crawler/src/security/ssrf-guard.test.ts
-git commit -m "feat(crawler): add SSRF guard with DNS lookup and private IP rejection"
-```
+- [ ] **Step 5: ✋ Review checkpoint — Task 3 complete. Confirm before continuing to Task 4.**
 
 ---
 
@@ -408,12 +395,7 @@ cd apps/crawler && npx vitest run src/middleware/auth.middleware.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
-
-```bash
-git add apps/crawler/src/middleware/auth.middleware.ts apps/crawler/src/middleware/auth.middleware.test.ts
-git commit -m "feat(crawler): add Bearer token auth middleware"
-```
+- [ ] **Step 5: ✋ Review checkpoint — Task 4 complete. Confirm before continuing to Task 5.**
 
 ---
 
@@ -521,12 +503,7 @@ cd apps/crawler && npx vitest run src/crawler/request-interceptor.test.ts
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
-
-```bash
-git add apps/crawler/src/crawler/request-interceptor.ts apps/crawler/src/crawler/request-interceptor.test.ts
-git commit -m "feat(crawler): add request interceptor for tracker blocking"
-```
+- [ ] **Step 5: ✋ Review checkpoint — Task 5 complete. Confirm before continuing to Task 6.**
 
 ---
 
@@ -672,12 +649,7 @@ cd apps/crawler && npx vitest run src/crawler/result-builder.test.ts
 
 Expected: PASS — all 5 tests green.
 
-- [ ] **Step 5: Commit**
-
-```bash
-git add apps/crawler/src/crawler/result-builder.ts apps/crawler/src/crawler/result-builder.test.ts
-git commit -m "feat(crawler): add result builder — sessions → AnalysisResult"
-```
+- [ ] **Step 5: ✋ Review checkpoint — Task 6 complete. Confirm before continuing to Task 7.**
 
 ---
 
@@ -787,12 +759,7 @@ cd apps/crawler && npx tsc --noEmit
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
-
-```bash
-git add apps/crawler/src/crawler/session-runner.ts
-git commit -m "feat(crawler): add session runner — Playwright context, stealth, intercept, metrics"
-```
+- [ ] **Step 3: ✋ Review checkpoint — Task 7 complete. Confirm before continuing to Task 8.**
 
 ---
 
@@ -907,12 +874,7 @@ cd apps/crawler && npx vitest run src/services/callback.service.test.ts
 
 Expected: PASS — all 3 tests green.
 
-- [ ] **Step 5: Commit**
-
-```bash
-git add apps/crawler/src/services/callback.service.ts apps/crawler/src/services/callback.service.test.ts
-git commit -m "feat(crawler): add callback service with 3-retry exponential backoff"
-```
+- [ ] **Step 5: ✋ Review checkpoint — Task 8 complete. Confirm before continuing to Task 9.**
 
 ---
 
@@ -1001,12 +963,7 @@ cd apps/crawler && npx tsc --noEmit
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
-
-```bash
-git add apps/crawler/src/services/crawl.service.ts
-git commit -m "feat(crawler): add crawl service — browser orchestration, sessions, result, callback"
-```
+- [ ] **Step 3: ✋ Review checkpoint — Task 9 complete. Confirm before continuing to Task 10.**
 
 ---
 
@@ -1199,12 +1156,7 @@ cd apps/crawler && npx tsc --noEmit
 
 Expected: no errors.
 
-- [ ] **Step 8: Commit**
-
-```bash
-git add apps/crawler/src/controllers/ apps/crawler/src/routes/ apps/crawler/src/index.ts
-git commit -m "feat(crawler): wire controller, router, and Express app — POST /crawl live"
-```
+- [ ] **Step 8: ✋ Review checkpoint — Task 10 complete. Confirm before continuing to Task 11.**
 
 ---
 
@@ -1275,9 +1227,4 @@ In `01-BUILD-PLAN.md`, change `- [ ] **Spec 03**` to `- [x] **Spec 03**` and add
 _notes: Layered Router→Controller→Service architecture; async webhook callback; dual Playwright sessions with stealth; SSRF guard; concurrency cap; AnalysisResult enriched with per-session SessionMetrics._
 ```
 
-- [ ] **Step 7: Commit**
-
-```bash
-git add 01-BUILD-PLAN.md
-git commit -m "chore(tracker): update build plan for spec 03"
-```
+- [ ] **Step 7: ✋ All tasks complete — tell the user implementation is ready for review. When they say "ship", follow the ship-workflow (branch, quality gate, commit, PR).**
