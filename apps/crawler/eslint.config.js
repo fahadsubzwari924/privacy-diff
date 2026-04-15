@@ -27,7 +27,11 @@ export default tseslint.config(
       '@typescript-eslint/prefer-nullish-coalescing': 'warn',
       '@typescript-eslint/prefer-optional-chain': 'warn',
       '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/no-misused-promises': ['error', {
+        checksVoidReturn: {
+          variables: false, // Allow async RequestHandler assignments (Express pattern)
+        },
+      }],
 
       // ─── Naming conventions ────────────────────────────────────────────────
       '@typescript-eslint/naming-convention': [
@@ -39,6 +43,11 @@ export default tseslint.config(
         {
           selector: 'variable',
           format: ['camelCase', 'UPPER_CASE'],
+        },
+        {
+          selector: 'parameter',
+          format: ['camelCase'],
+          leadingUnderscore: 'allow', // Allow _req, _next for unused Express params
         },
         {
           selector: 'typeLike',

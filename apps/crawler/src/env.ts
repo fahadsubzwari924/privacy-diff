@@ -7,7 +7,7 @@ import {
 
 const schema = z.object({
   PORT: z.coerce.number().int().positive(),
-  CRAWLER_SHARED_SECRET: z.string().min(1, ENV_VALIDATION_MESSAGES.CRAWLER_SHARED_SECRET_REQUIRED),
+  CRAWLER_SHARED_SECRET: z.string().min(1, ENV_VALIDATION_MESSAGES.SECRET_REQUIRED),
   WEB_CALLBACK_URL: z.string().url(ENV_VALIDATION_MESSAGES.WEB_CALLBACK_URL_INVALID),
   MAX_CONCURRENT_JOBS: z.coerce.number().int().positive(),
   NODE_ENV: z.enum(NODE_ENV_VALUES),
