@@ -1,6 +1,7 @@
 export type {
   TrackerEntry,
   BlockedRequest,
+  SessionMetrics,
   TrackerOwnerSummary,
   AnalysisResult,
   CrawlRequest,
