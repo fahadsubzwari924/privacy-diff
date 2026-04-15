@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   ENV_VALIDATION_MESSAGES,
   NODE_ENV_VALUES,
-} from "./constants/index.js";
+} from "./src/constants/index.js";
 
 const schema = z.object({
   databaseUrl: z.string().url(ENV_VALIDATION_MESSAGES.DATABASE_URL_INVALID),
