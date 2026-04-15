@@ -143,6 +143,8 @@ export const logger = pino({
 - [ ] **Step 2: Create `errors/index.ts`**
 
 ```typescript
+import { CRAWL_TIMEOUT_MS } from '../constants/index.js';
+
 export class SsrfError extends Error {
   constructor(message: string) {
     super(message);
@@ -152,7 +154,7 @@ export class SsrfError extends Error {
 
 export class CrawlTimeoutError extends Error {
   constructor() {
-    super('Crawl timed out after 30s');
+    super(`Crawl timed out after ${CRAWL_TIMEOUT_MS / 1_000}s`);
     this.name = 'CrawlTimeoutError';
   }
 }
@@ -202,6 +204,43 @@ export const PRIVATE_IP_RANGES = [
   /^fc[0-9a-f]{2}:/i,
   /^fe[89ab][0-9a-f]:/i,
 ] as const;
+
+export const BROWSER_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+export const BROWSER_VIEWPORT = { width: 1280, height: 800 } as const;
+
+export const ROUTE_INTERCEPT_PATTERN = '**/*';
+
+export const PAGE_WAIT_UNTIL = 'domcontentloaded' as const;
+
+export const TIMEOUT_ERROR_KEYWORDS = ['Timeout', 'timeout'] as const;
+
+export const APP_LOCALS_KEYS = {
+  TRACKER_MAP: 'trackerMap',
+} as const;
+
+export const ERROR_CODES = {
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  SSRF_REJECTED: 'SSRF_REJECTED',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  CAPACITY_EXCEEDED: 'CAPACITY_EXCEEDED',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+} as const;
+
+export const CRAWL_JOB_STATUS = {
+  ACCEPTED: 'accepted',
+} as const;
+
+export const ERROR_MESSAGES = {
+  BOTH_SESSIONS_FAILED: 'Both sessions failed',
+  BOT_BLOCKED: 'Site blocked automated browsing',
+  UNEXPECTED_ERROR: 'Unexpected error',
+  INVALID_AUTH: 'Invalid or missing authorization token',
+  INVALID_BODY: 'Invalid request body',
+  SSRF_URL_VALIDATION: 'Unexpected error during URL validation',
+  CAPACITY_EXCEEDED: 'Crawler is at capacity, retry later',
+} as const;
 ```
 
 - [ ] **Step 4: Add vitest as a dev dependency (needed for all test tasks)**
@@ -376,11 +415,12 @@ Expected: FAIL — module not found.
 ```typescript
 import type { Request, Response, NextFunction } from 'express';
 import { env } from '../env.js';
+import { ERROR_CODES, ERROR_MESSAGES } from '../constants/index.js';
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
   const expected = `Bearer ${env.crawlerSharedSecret}`;
   if (req.headers.authorization !== expected) {
-    res.status(401).json({ code: 'UNAUTHORIZED', message: 'Invalid or missing authorization token' });
+    res.status(401).json({ code: ERROR_CODES.UNAUTHORIZED, message: ERROR_MESSAGES.INVALID_AUTH });
     return;
   }
   next();
@@ -669,7 +709,15 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import type { TrackerEntry, BlockedRequest, SessionMetrics } from '@privacy-diff/shared';
 import { createInterceptHandler } from './request-interceptor.js';
 import { CrawlTimeoutError, CrawlNavigationError } from '../errors/index.js';
-import { CRAWL_TIMEOUT_MS, BOT_CHALLENGE_PATTERNS } from '../constants/index.js';
+import {
+  CRAWL_TIMEOUT_MS,
+  BOT_CHALLENGE_PATTERNS,
+  BROWSER_USER_AGENT,
+  BROWSER_VIEWPORT,
+  ROUTE_INTERCEPT_PATTERN,
+  PAGE_WAIT_UNTIL,
+  TIMEOUT_ERROR_KEYWORDS,
+} from '../constants/index.js';
 
 chromium.use(StealthPlugin());
 
@@ -681,8 +729,6 @@ export type SessionResult = {
   blockedList: BlockedRequest[];
 };
 
-const ZERO_METRICS: SessionMetrics = { requestCount: 0, totalBytes: 0, loadTimeMs: 0 };
-
 export async function runSession(
   browser: Browser,
   url: string,
@@ -690,9 +736,8 @@ export async function runSession(
   trackerMap: Record<string, TrackerEntry>,
 ): Promise<SessionResult> {
   const context = await browser.newContext({
-    userAgent:
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    viewport: { width: 1280, height: 800 },
+    userAgent: BROWSER_USER_AGENT,
+    viewport: BROWSER_VIEWPORT,
   });
 
   const page = await context.newPage();
@@ -701,7 +746,7 @@ export async function runSession(
   let totalBytes = 0;
 
   await page.route(
-    '**/*',
+    ROUTE_INTERCEPT_PATTERN,
     createInterceptHandler({
       block: options.block,
       trackerMap,
@@ -718,11 +763,11 @@ export async function runSession(
   const startTime = Date.now();
 
   try {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: CRAWL_TIMEOUT_MS });
+    await page.goto(url, { waitUntil: PAGE_WAIT_UNTIL, timeout: CRAWL_TIMEOUT_MS });
   } catch (err) {
     await context.close();
     const message = err instanceof Error ? err.message : String(err);
-    if (message.includes('Timeout') || message.includes('timeout')) {
+    if (TIMEOUT_ERROR_KEYWORDS.some((kw) => message.includes(kw))) {
       throw new CrawlTimeoutError();
     }
     throw new CrawlNavigationError(message);
@@ -891,7 +936,7 @@ import { launchBrowser, runSession } from '../crawler/session-runner.js';
 import { buildResult } from '../crawler/result-builder.js';
 import { sendCallback } from './callback.service.js';
 import { logger } from '../logger.js';
-import { env } from '../env.js';
+import { ERROR_MESSAGES } from '../constants/index.js';
 import type { SessionResult } from '../crawler/session-runner.js';
 
 let activeJobs = 0;
@@ -925,7 +970,9 @@ export async function executeCrawl(
 
     const bothFailed = unprotectedResult.status === 'rejected' && protectedResult.status === 'rejected';
     if (bothFailed) {
-      const error = unprotectedResult.reason instanceof Error ? unprotectedResult.reason.message : 'Both sessions failed';
+      const error = unprotectedResult.reason instanceof Error
+        ? unprotectedResult.reason.message
+        : ERROR_MESSAGES.BOTH_SESSIONS_FAILED;
       logger.error({ reportId, error }, 'Both crawl sessions failed');
       await sendCallback(callbackUrl, { reportId, status: 'error', error });
       return;
@@ -937,7 +984,7 @@ export async function executeCrawl(
 
     if (unprotected.botDetected || protectedSession.botDetected) {
       logger.warn({ reportId }, 'Bot challenge detected during crawl');
-      await sendCallback(callbackUrl, { reportId, status: 'error', error: 'Site blocked automated browsing' });
+      await sendCallback(callbackUrl, { reportId, status: 'error', error: ERROR_MESSAGES.BOT_BLOCKED });
       return;
     }
 
@@ -945,7 +992,7 @@ export async function executeCrawl(
     logger.info({ reportId, blockedRequests: data.blockedRequests, partial }, 'Crawl complete');
     await sendCallback(callbackUrl, { reportId, status: 'done', data });
   } catch (err) {
-    const error = err instanceof Error ? err.message : 'Unexpected error';
+    const error = err instanceof Error ? err.message : ERROR_MESSAGES.UNEXPECTED_ERROR;
     logger.error({ reportId, error }, 'Crawl service error');
     await sendCallback(callbackUrl, { reportId, status: 'error', error });
   } finally {
@@ -1052,6 +1099,12 @@ import { executeCrawl, getActiveJobs } from '../services/crawl.service.js';
 import { SsrfError } from '../errors/index.js';
 import { env } from '../env.js';
 import { logger } from '../logger.js';
+import {
+  ERROR_CODES,
+  ERROR_MESSAGES,
+  CRAWL_JOB_STATUS,
+  APP_LOCALS_KEYS,
+} from '../constants/index.js';
 
 const CrawlBodySchema = z.object({
   url: z.string().url({ message: 'url must be a valid URL' }),
@@ -1063,8 +1116,8 @@ export async function handleCrawl(req: Request, res: Response): Promise<void> {
   const parsed = CrawlBodySchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({
-      code: 'VALIDATION_ERROR',
-      message: 'Invalid request body',
+      code: ERROR_CODES.VALIDATION_ERROR,
+      message: ERROR_MESSAGES.INVALID_BODY,
       details: parsed.error.flatten().fieldErrors,
     });
     return;
@@ -1076,24 +1129,24 @@ export async function handleCrawl(req: Request, res: Response): Promise<void> {
     await ssrfGuard(url);
   } catch (err) {
     if (err instanceof SsrfError) {
-      res.status(400).json({ code: 'SSRF_REJECTED', message: err.message });
+      res.status(400).json({ code: ERROR_CODES.SSRF_REJECTED, message: err.message });
       return;
     }
-    res.status(500).json({ code: 'INTERNAL_ERROR', message: 'Unexpected error during URL validation' });
+    res.status(500).json({ code: ERROR_CODES.INTERNAL_ERROR, message: ERROR_MESSAGES.SSRF_URL_VALIDATION });
     return;
   }
 
   if (getActiveJobs() >= env.maxConcurrentJobs) {
-    res.status(503).json({ code: 'CAPACITY_EXCEEDED', message: 'Crawler is at capacity, retry later' });
+    res.status(503).json({ code: ERROR_CODES.CAPACITY_EXCEEDED, message: ERROR_MESSAGES.CAPACITY_EXCEEDED });
     return;
   }
 
-  const trackerMap = req.app.locals['trackerMap'] as Record<string, TrackerEntry>;
+  const trackerMap = req.app.locals[APP_LOCALS_KEYS.TRACKER_MAP] as Record<string, TrackerEntry>;
   logger.info({ reportId }, 'Crawl job accepted');
 
   void executeCrawl(url, reportId, callbackUrl, trackerMap);
 
-  res.status(202).json({ reportId, status: 'accepted' });
+  res.status(202).json({ reportId, status: CRAWL_JOB_STATUS.ACCEPTED });
 }
 ```
 
@@ -1122,12 +1175,13 @@ import { env } from './env.js';
 import { logger } from './logger.js';
 import { loadTrackerMap } from './tracker-map-loader.js';
 import crawlRouter from './routes/crawl.route.js';
+import { APP_LOCALS_KEYS } from './constants/index.js';
 
 const app = express();
 app.use(express.json());
 
 const trackerMap = loadTrackerMap();
-app.locals['trackerMap'] = trackerMap;
+app.locals[APP_LOCALS_KEYS.TRACKER_MAP] = trackerMap;
 
 app.use(crawlRouter);
 
