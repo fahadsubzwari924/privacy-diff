@@ -16,8 +16,8 @@
 ## Progress Checklist
 
 ### Setup
-- [ ] **Spec 01** — Project setup (monorepo, deps, env) — _notes:_
-- [ ] **Spec 02** — Tracker Radar data ingested and queryable — _notes:_
+- [x] **Spec 01** — Project setup (monorepo, deps, env) — _notes:_
+- [x] **Spec 02** — Tracker Radar data ingested and queryable — _notes: DuckDuckGo android-tds.json fetched at build time, 3,092 tracker entries normalized into O(1) lookup map, shared package exports lookupTracker() with suffix-matching_
 
 ### Backend
 - [ ] **Spec 03** — Crawler service runs diff and returns JSON — _notes:_
@@ -36,7 +36,7 @@
 
 > Append decisions here as you make them — Cursor especially should log when it deviates from a spec and why.
 
-- _Example: 2026-04-15 — Switched from Recharts to Chart.js because Recharts had SSR issue. — Cursor_
+- 2026-04-15 — Used android-tds.json instead of web TDS: web URLs inaccessible (403/404), android-tds is official DDG data with 3,092 entries. Fallback path per Spec 02 risk assessment. — Cursor
 
 ## Known Issues / Cuts
 
