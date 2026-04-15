@@ -7,3 +7,5 @@ export type {
   CrawlCallback,
   ReportStatus,
 } from "./types";
+
+export { lookupTracker } from "./tracker-lookup";

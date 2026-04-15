@@ -55,7 +55,23 @@ If conflicts arise after `stash pop`:
 3. Present each conflict to the user and ask them to resolve it.
 4. After the user confirms all conflicts are resolved, stage the files (`git add`) and continue.
 
-## Step 5 — Quality gate (all must pass before PR)
+## Step 5 — Update build plan
+
+Before quality checks, update `01-BUILD-PLAN.md` to reflect the shipped work:
+
+1. Locate the relevant spec row in the **Progress Checklist** section.
+2. Change `[ ]` to `[x]` for the completed spec.
+3. Add a one-line note in the `_notes:_` field explaining what was done or any decisions made.
+4. If this commit closes a decision or documents a known issue, update the **Decision Log** or **Known Issues / Cuts** section.
+5. Stage and commit this change separately:
+   ```bash
+   git add 01-BUILD-PLAN.md
+   git commit -m "chore(tracker): update build plan for spec <number>"
+   ```
+
+Then proceed to Step 6 (quality gate).
+
+## Step 6 — Quality gate (all must pass before PR)
 
 Run each command in sequence. **Fix any error before running the next command.**
 
@@ -77,7 +93,7 @@ Rules for this step:
 - If `npm run test` fails → fix the failing tests or document the gap with the user's explicit approval.
 - Never use `--force`, `--no-verify`, or any flag that bypasses these checks.
 
-## Step 6 — Commit and open the PR
+## Step 7 — Commit and open the PR
 
 Stage and commit all changes with a conventional commit message:
 
