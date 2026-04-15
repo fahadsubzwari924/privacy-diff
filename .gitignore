@@ -1,0 +1,4 @@
+# ai-dev-setup: ignore cloned Superpowers + Agency (remove this block if you commit vendor/)
+# --- ai-dev-setup: vendor (managed) ---
+/vendor/
+# --- end ai-dev-setup vendor ---

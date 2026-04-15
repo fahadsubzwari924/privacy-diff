@@ -1,0 +1,14 @@
+---
+description: Pre-merge review checklist for Privacy Diff
+globs: ""
+alwaysApply: false
+---
+
+# Review
+
+- Use Superpowers review/verification flow and the reviewer specialist per `routing.mdc` defaults
+- Acceptance checks satisfied; no accidental scope creep
+- Lint/test/build scripts clean (`npm run lint`, `npm run test`, `npm run build`)
+- Security: input validation, authz, secrets, injection risks per `docs/SECURITY.md`
+- Docs updated when public behavior or architecture changes
+- Merge risks + rollback noted for risky changes
