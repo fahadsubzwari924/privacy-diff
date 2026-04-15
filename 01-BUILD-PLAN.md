@@ -21,7 +21,7 @@
 
 ### Backend
 - [x] **Spec 03** — Crawler service runs diff and returns JSON — _notes: Express.js service with POST /crawl, dual Playwright sessions (protected + unprotected), tracker blocking via request interception, webhook callbacks with exponential backoff, SSRF protection, concurrency limits, 27/27 unit tests passing_
-- [ ] **Spec 04** — Postgres schema created, reports persist — _notes:_
+- [x] **Spec 04** — Postgres schema created, reports persist — _notes: Drizzle 0.45 + postgres driver; reports table with cache index (url_hash, week_bucket); report-repository layer isolates all DB calls; url-normalizer, slug-generator, week-bucket utilities; committed SQL migration in src/db/migrations/; 26/26 unit tests passing_
 - [ ] **Spec 05** — API routes work end-to-end — _notes:_
 
 ### Frontend
