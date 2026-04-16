@@ -6,6 +6,7 @@ import type {
   CreateReportInput,
   Report,
   ReportStatus,
+  ReportStatusRow,
   UpdateReportResultsInput,
 } from './report.types';
 
@@ -51,6 +52,22 @@ export async function findReportById(id: string): Promise<Report | null> {
     .limit(1);
 
   return (rows[0] as Report) ?? null;
+}
+
+export async function findReportStatus(
+  id: string,
+): Promise<ReportStatusRow | null> {
+  const rows = await db
+    .select({
+      id: reports.id,
+      status: reports.status,
+      error: reports.error,
+    })
+    .from(reports)
+    .where(eq(reports.id, id))
+    .limit(1);
+
+  return (rows[0] as ReportStatusRow) ?? null;
 }
 
 export async function updateReportStatus(

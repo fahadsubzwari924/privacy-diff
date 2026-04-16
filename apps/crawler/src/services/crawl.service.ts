@@ -19,7 +19,16 @@ export async function executeCrawl(
   trackerMap: Record<string, TrackerEntry>,
 ): Promise<void> {
   activeJobs += 1;
-  const browser = await launchBrowser();
+  let browser;
+  try {
+    browser = await launchBrowser();
+  } catch (err) {
+    activeJobs -= 1;
+    const error = err instanceof Error ? err.message : ERROR_MESSAGES.UNEXPECTED_ERROR;
+    logger.error({ reportId, error }, 'Failed to launch browser');
+    await sendCallback(callbackUrl, { reportId, status: 'error', error });
+    return;
+  }
 
   try {
     const [unprotectedResult, protectedResult] = await Promise.allSettled([
@@ -55,7 +64,11 @@ export async function executeCrawl(
     logger.error({ reportId, error }, 'Crawl service error');
     await sendCallback(callbackUrl, { reportId, status: 'error', error });
   } finally {
-    await browser.close();
+    try {
+      await browser.close();
+    } catch {
+      logger.warn({ reportId }, 'Browser close failed (already terminated)');
+    }
     activeJobs -= 1;
   }
 }

@@ -4,6 +4,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  serial,
   text,
   timestamp,
 } from 'drizzle-orm/pg-core';
@@ -37,4 +38,14 @@ export const reports = pgTable(
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
   (t) => [index('reports_cache_idx').on(t.urlHash, t.weekBucket)],
+);
+
+export const rateLimits = pgTable(
+  'rate_limits',
+  {
+    id: serial('id').primaryKey(),
+    ipHash: text('ip_hash').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => [index('rate_limits_ip_created_idx').on(t.ipHash, t.createdAt)],
 );
