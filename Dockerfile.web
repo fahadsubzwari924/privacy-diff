@@ -19,6 +19,19 @@ COPY . .
 # Build shared package (required by web)
 RUN pnpm --filter @privacy-diff/shared build
 
+# Dummy build-time values so Next.js page-data collection passes Zod validation
+# in env.ts. Real values are injected by Railway at runtime.
+ARG DATABASE_URL=http://placeholder.invalid
+ARG CRAWLER_URL=http://placeholder.invalid
+ARG CRAWLER_SHARED_SECRET=build-placeholder
+ARG PUBLIC_BASE_URL=http://placeholder.invalid
+ARG NODE_ENV=production
+ENV DATABASE_URL=$DATABASE_URL
+ENV CRAWLER_URL=$CRAWLER_URL
+ENV CRAWLER_SHARED_SECRET=$CRAWLER_SHARED_SECRET
+ENV PUBLIC_BASE_URL=$PUBLIC_BASE_URL
+ENV NODE_ENV=$NODE_ENV
+
 # Build Next.js with standalone output
 RUN pnpm --filter @privacy-diff/web build
 
