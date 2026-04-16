@@ -60,7 +60,8 @@ async function notifyCrawlerOrMarkFailed(
   normalized: string,
   hashPrefix: string,
 ): Promise<JsonServiceResult> {
-  const callbackUrl = new URL("/api/report-callback", env.publicBaseUrl).href;
+  const callbackBase = env.internalUrl ?? env.publicBaseUrl;
+  const callbackUrl = new URL("/api/report-callback", callbackBase).href;
   const accepted = await notifyCrawlerAccepted(slug, normalized, callbackUrl);
   if (!accepted) {
     await reportRepo.updateReportStatus(

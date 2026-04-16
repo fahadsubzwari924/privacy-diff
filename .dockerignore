@@ -29,6 +29,7 @@ apps/crawler/src/data/tracker-map.json
 Thumbs.db
 *.log
 *.tsbuildinfo
+**/*.tsbuildinfo
 
 # Docs / dev tooling (not needed inside image)
 *.md
