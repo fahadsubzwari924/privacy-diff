@@ -1,0 +1,40 @@
+# Dependencies — reinstalled inside Docker
+node_modules
+**/node_modules
+.pnpm-store
+
+# Build outputs — rebuilt inside Docker
+.next
+**/.next
+dist
+**/dist
+out
+**/out
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Secrets — never bake into images
+.env
+.env.*
+!.env.example
+
+# Generated tracker data — regenerated at build time
+apps/crawler/src/data/tracker-map.json
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.log
+*.tsbuildinfo
+
+# Docs / dev tooling (not needed inside image)
+*.md
+vendor/
+.cursor/
+.cursor-plugin/
+coverage/
+playwright-report/
+test-results/

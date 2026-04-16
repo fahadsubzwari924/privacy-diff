@@ -10,6 +10,8 @@ const monorepoRoot = path.join(
 );
 
 const nextConfig: NextConfig = {
+  output: "standalone",
+  outputFileTracingRoot: monorepoRoot,
   transpilePackages: ["@privacy-diff/shared"],
   turbopack: {
     root: monorepoRoot,
