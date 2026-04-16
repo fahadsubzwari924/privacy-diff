@@ -86,5 +86,8 @@ export async function getReportStatus(rawId: string): Promise<JsonServiceResult>
 
   const body: Record<string, unknown> = { status: row.status };
   if (row.error) body.error = row.error;
+  if (row.status === 'done') {
+    body.blockedCount = row.blockedRequests?.length ?? 0;
+  }
   return { status: 200, body };
 }

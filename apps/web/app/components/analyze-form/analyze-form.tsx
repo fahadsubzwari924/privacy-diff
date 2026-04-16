@@ -152,17 +152,25 @@ export function AnalyzeForm() {
 
       <div className="flex flex-wrap gap-2">
         <span className="text-sm text-muted-foreground">Try:</span>
-        {EXAMPLE_SITES.map((site) => (
-          <button
-            key={site}
-            type="button"
-            disabled={isSubmitting}
-            onClick={() => onChipClick(site)}
-            className="rounded-full border border-border bg-muted px-3 py-0.5 text-sm text-muted-foreground transition-colors hover:border-brand/50 hover:bg-brand/10 hover:text-brand disabled:pointer-events-none disabled:opacity-50"
-          >
-            {site}
-          </button>
-        ))}
+        {EXAMPLE_SITES.map((site) => {
+          let label: string = site;
+          try {
+            label = new URL(site).hostname;
+          } catch {
+            // keep raw value as label fallback
+          }
+          return (
+            <button
+              key={site}
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => onChipClick(site)}
+              className="rounded-full border border-border bg-muted px-3 py-0.5 text-sm text-muted-foreground transition-colors hover:border-brand/50 hover:bg-brand/10 hover:text-brand disabled:pointer-events-none disabled:opacity-50"
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

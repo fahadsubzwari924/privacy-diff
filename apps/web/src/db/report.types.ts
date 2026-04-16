@@ -5,6 +5,8 @@ export interface ReportStatusRow {
   id: string;
   status: ReportStatus;
   error: string | null;
+  /** Populated only when status is 'done'; used to animate the reveal counter. */
+  blockedRequests: BlockedRequest[] | null;
 }
 
 export interface BlockedRequest {

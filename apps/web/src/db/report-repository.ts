@@ -62,6 +62,7 @@ export async function findReportStatus(
       id: reports.id,
       status: reports.status,
       error: reports.error,
+      blockedRequests: reports.blockedRequests,
     })
     .from(reports)
     .where(eq(reports.id, id))
