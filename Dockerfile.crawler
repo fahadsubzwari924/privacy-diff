@@ -1,0 +1,51 @@
+# ─── Stage 1: Build ───────────────────────────────────────────────────────────
+# Use a standard Node image for the build — keeps the build layer lean
+FROM node:20-slim AS builder
+
+RUN npm install -g pnpm@9
+
+WORKDIR /repo
+
+# Copy workspace manifests first for better layer caching
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/web/package.json ./apps/web/
+COPY apps/crawler/package.json ./apps/crawler/
+
+RUN pnpm install --frozen-lockfile
+
+# Copy full source (node_modules excluded via .dockerignore)
+COPY . .
+
+# Build shared package first (crawler depends on it)
+RUN pnpm --filter @privacy-diff/shared build
+
+# Generate tracker-map.json from DuckDuckGo's blocklist (requires network)
+RUN pnpm --filter @privacy-diff/crawler build:trackers
+
+# Compile TypeScript → dist/
+RUN pnpm --filter @privacy-diff/crawler build
+
+# tsc does not copy non-.ts files — manually promote tracker map to dist/
+RUN mkdir -p apps/crawler/dist/data \
+    && cp apps/crawler/src/data/tracker-map.json apps/crawler/dist/data/
+
+# Flatten workspace deps into a portable directory (workspace:* resolved + inlined)
+# "files": ["dist"] in package.json ensures dist/ is included despite .gitignore
+RUN pnpm --filter @privacy-diff/crawler deploy --prod /app/crawler-deploy
+
+# ─── Stage 2: Runtime ─────────────────────────────────────────────────────────
+# Official Playwright image ships Chromium + all required system dependencies
+FROM mcr.microsoft.com/playwright:v1.44.0-jammy AS runtime
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Copy the fully self-contained deployment (node_modules + dist)
+COPY --from=builder /app/crawler-deploy .
+
+EXPOSE 8080
+
+CMD ["node", "dist/index.js"]

@@ -1,0 +1,51 @@
+# ─── Stage 1: Build ───────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
+
+RUN npm install -g pnpm@9
+
+WORKDIR /repo
+
+# Copy workspace manifests first for better layer caching on repeated builds
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/web/package.json ./apps/web/
+COPY apps/crawler/package.json ./apps/crawler/
+
+RUN pnpm install --frozen-lockfile
+
+# Copy full source (node_modules excluded via .dockerignore)
+COPY . .
+
+# Build shared package (required by web)
+RUN pnpm --filter @privacy-diff/shared build
+
+# Build Next.js with standalone output
+RUN pnpm --filter @privacy-diff/web build
+
+# Compile migrate.ts to CommonJS using the dedicated tsconfig
+RUN cd apps/web && npx tsc -p tsconfig.migrate.json
+
+# ─── Stage 2: Runtime ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS runtime
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+# Next.js standalone output — self-contained server with all production deps
+COPY --from=builder /repo/apps/web/.next/standalone ./
+
+# Static assets and public dir are NOT included in standalone by default
+COPY --from=builder /repo/apps/web/.next/static ./.next/static
+COPY --from=builder /repo/apps/web/public ./public
+
+# Migration script (compiled to CJS) + SQL migration files
+COPY --from=builder /repo/dist-migrate/migrate.js ./migrate.js
+COPY --from=builder /repo/apps/web/src/db/migrations ./migrations
+
+EXPOSE 3000
+
+# Run migrations then start the Next.js standalone server
+CMD ["sh", "-c", "node migrate.js && node server.js"]
