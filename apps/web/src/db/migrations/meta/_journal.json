@@ -8,6 +8,13 @@
       "when": 1776267383514,
       "tag": "0000_parallel_proudstar",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776318070058,
+      "tag": "0001_rate_limits",
+      "breakpoints": true
     }
   ]
 }

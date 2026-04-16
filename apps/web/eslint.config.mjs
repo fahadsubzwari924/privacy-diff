@@ -38,6 +38,13 @@ const eslintConfig = defineConfig([
           format: ["camelCase"],
         },
         {
+          // Allow underscore-prefixed parameters (e.g. _request in Next.js route handlers)
+          selector: "parameter",
+          modifiers: ["unused"],
+          leadingUnderscore: "require",
+          format: ["camelCase"],
+        },
+        {
           selector: "variable",
           format: ["camelCase", "UPPER_CASE"],
         },
