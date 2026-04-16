@@ -19,6 +19,9 @@ export const ANALYZE_URL_MAX_LENGTH = 2000;
 /** Rolling window for analyze rate limit (ms) */
 export const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
 
+/** Example sites shown as chips on the homepage */
+export const EXAMPLE_SITES = ["cnn.com", "nytimes.com", "amazon.com"] as const;
+
 /** HTTP API stable error codes */
 export const API_ERROR_CODES = {
   VALIDATION_ERROR: "VALIDATION_ERROR",
