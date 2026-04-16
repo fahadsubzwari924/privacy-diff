@@ -1,5 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnalyzeForm } from "@/app/components/analyze-form/analyze-form";
+import { SiteHeader } from "@/app/components/site-header/site-header";
+import { SiteFooter } from "@/app/components/site-footer/site-footer";
+
+const HERO = {
+  HEADING: "Privacy Diff",
+  SUBHEADING: "See who's watching you on any site.",
+} as const;
 
 const HOW_IT_WORKS = [
   {
@@ -22,17 +29,20 @@ const HOW_IT_WORKS = [
   },
 ] as const;
 
+const HOW_IT_WORKS_HEADING = "How it works";
+
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
+      <SiteHeader />
       <main className="flex-1">
         {/* Hero */}
-        <section className="mx-auto flex w-full max-w-2xl flex-col items-center px-4 pt-24 pb-16 text-center sm:pt-32">
+        <section className="mx-auto flex w-full max-w-2xl flex-col items-center px-4 pt-16 pb-16 text-center sm:pt-24">
           <h1 className="mb-3 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            Privacy Diff
+            {HERO.HEADING}
           </h1>
           <p className="mb-10 max-w-md text-lg text-muted-foreground">
-            See who&apos;s watching you on any site.
+            {HERO.SUBHEADING}
           </p>
 
           <div className="w-full max-w-xl">
@@ -48,7 +58,7 @@ export default function HomePage() {
         {/* How it works */}
         <section className="mx-auto max-w-3xl px-4 py-16">
           <h2 className="mb-8 text-center text-sm font-semibold uppercase tracking-widest text-muted-foreground">
-            How it works
+            {HOW_IT_WORKS_HEADING}
           </h2>
           <div className="grid gap-4 sm:grid-cols-3">
             {HOW_IT_WORKS.map(({ step, title, description }) => (
@@ -68,19 +78,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-6 text-center text-sm text-muted-foreground">
-        Built on{" "}
-        <a
-          href="https://github.com/duckduckgo/tracker-radar"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-medium text-foreground underline-offset-4 hover:underline"
-        >
-          DuckDuckGo&apos;s open Tracker Radar
-        </a>
-        .
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
