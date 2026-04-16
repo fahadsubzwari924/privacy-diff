@@ -82,6 +82,8 @@ export const DUAL_SCAN_VIEW = {
   PROGRESS_STALL_THRESHOLD_MS: 12_000,
   /** Natural cap — progress never reaches 100% until real completion. */
   PROGRESS_NATURAL_CAP: 90,
+  /** Maximum time before giving up on the scan (ms). */
+  POLL_TIMEOUT_MS: 90_000,
   /** How long to show the reveal before navigating to the report (ms). */
   REVEAL_DELAY_MS: 2_000,
   /** Duration of the blocked-count counter animation (ms). */

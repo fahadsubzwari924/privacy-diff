@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { DUAL_SCAN_VIEW } from "../constants/report-page.constants";
 import { useRubberBandProgress } from "../hooks/use-rubber-band-progress";
@@ -9,7 +10,7 @@ import { useFakeRequestFeed } from "../hooks/use-fake-request-feed";
 import type { DualScanViewProps } from "../types/report-page.types";
 import { BrowserPane } from "./browser-pane";
 
-type ScanState = "scanning" | "revealing" | "navigating";
+type ScanState = "scanning" | "revealing" | "navigating" | "error";
 
 type StatusResponse = {
   status: string;
@@ -30,6 +31,12 @@ export function DualScanView({ reportId, targetUrl }: DualScanViewProps) {
   const [scanState, setScanState] = useState<ScanState>("scanning");
   const [blockedCount, setBlockedCount] = useState(0);
   const [displayCount, setDisplayCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const startTimeRef = useRef(0);
+
+  useEffect(() => {
+    startTimeRef.current = Date.now();
+  }, []);
 
   const isComplete = scanState !== "scanning";
   const hostname = extractHostname(targetUrl);
@@ -40,6 +47,13 @@ export function DualScanView({ reportId, targetUrl }: DualScanViewProps) {
 
   // ── Polling ──────────────────────────────────────────────────────────────
   const checkStatus = useCallback(async () => {
+    const elapsed = Date.now() - startTimeRef.current;
+    if (elapsed > DUAL_SCAN_VIEW.POLL_TIMEOUT_MS) {
+      setErrorMessage("Analysis is taking too long. The site may be unreachable or blocking our scanner.");
+      setScanState("error");
+      return;
+    }
+
     try {
       const res = await fetch(`/api/report/${reportId}/status`);
       if (!res.ok) return;
@@ -49,19 +63,21 @@ export function DualScanView({ reportId, targetUrl }: DualScanViewProps) {
         setBlockedCount(data.blockedCount ?? 0);
         setScanState("revealing");
       } else if (data.status === "error") {
-        router.refresh();
+        setErrorMessage(data.error ?? "Something went wrong during analysis.");
+        setScanState("error");
       }
     } catch {
       // network blip — keep polling
     }
-  }, [reportId, router]);
+  }, [reportId]);
 
   useEffect(() => {
+    if (scanState !== "scanning") return;
     const timer = setInterval(() => {
       void checkStatus();
     }, DUAL_SCAN_VIEW.POLL_INTERVAL_MS);
     return () => clearInterval(timer);
-  }, [checkStatus]);
+  }, [checkStatus, scanState]);
 
   // ── Auto-navigate after reveal ────────────────────────────────────────────
   useEffect(() => {
@@ -101,6 +117,28 @@ export function DualScanView({ reportId, targetUrl }: DualScanViewProps) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   const revealVisible = scanState === "revealing" || scanState === "navigating";
+
+  if (scanState === "error") {
+    return (
+      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-16 text-center">
+        <div className="mx-auto max-w-md space-y-4">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-destructive/10">
+            <span className="text-xl">✕</span>
+          </div>
+          <h2 className="text-xl font-semibold">Analysis failed</h2>
+          <p className="text-sm text-muted-foreground">
+            {errorMessage}
+          </p>
+          <Link
+            href="/"
+            className="inline-block rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-brand-foreground hover:bg-brand/90"
+          >
+            ← Try another site
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">

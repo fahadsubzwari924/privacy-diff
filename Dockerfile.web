@@ -1,5 +1,5 @@
 # ─── Stage 1: Build ───────────────────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 RUN npm install -g pnpm@9
 
@@ -22,8 +22,15 @@ RUN pnpm --filter @privacy-diff/shared build
 # Build Next.js with standalone output
 RUN pnpm --filter @privacy-diff/web build
 
-# Compile migrate.ts to CommonJS using the dedicated tsconfig
+# Compile migrate.ts to CommonJS
 RUN cd apps/web && npx tsc -p tsconfig.migrate.json
+
+# Assemble a minimal node_modules for the migrate script (drizzle-orm + postgres)
+# These are production deps of @privacy-diff/web but Next.js standalone tracing
+# may not include the migrator subpath since the app itself doesn't import it.
+RUN mkdir -p /migrate-deps/node_modules \
+    && cp -rL apps/web/node_modules/drizzle-orm /migrate-deps/node_modules/ \
+    && cp -rL apps/web/node_modules/postgres /migrate-deps/node_modules/
 
 # ─── Stage 2: Runtime ─────────────────────────────────────────────────────────
 FROM node:20-alpine AS runtime
@@ -37,15 +44,18 @@ ENV HOSTNAME=0.0.0.0
 # Next.js standalone output — self-contained server with all production deps
 COPY --from=builder /repo/apps/web/.next/standalone ./
 
-# Static assets and public dir are NOT included in standalone by default
-COPY --from=builder /repo/apps/web/.next/static ./.next/static
-COPY --from=builder /repo/apps/web/public ./public
+# Static assets and public dir are NOT included in standalone by default.
+# Must go under apps/web/ to match the monorepo layout that outputFileTracingRoot produces.
+COPY --from=builder /repo/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder /repo/apps/web/public ./apps/web/public
 
-# Migration script (compiled to CJS) + SQL migration files
+# Migration script (compiled to CJS) + its deps + SQL migration files
 COPY --from=builder /repo/dist-migrate/migrate.js ./migrate.js
+COPY --from=builder /migrate-deps/node_modules ./migrate-deps/
 COPY --from=builder /repo/apps/web/src/db/migrations ./migrations
 
 EXPOSE 3000
 
-# Run migrations then start the Next.js standalone server
-CMD ["sh", "-c", "node migrate.js && node server.js"]
+# Run migrations (NODE_PATH points to migrate deps) then start Next.js
+# server.js is at apps/web/ because outputFileTracingRoot preserves monorepo layout
+CMD ["sh", "-c", "NODE_PATH=/app/migrate-deps node migrate.js && node apps/web/server.js"]

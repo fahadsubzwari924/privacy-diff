@@ -9,6 +9,7 @@ const schema = z.object({
   crawlerUrl: z.string().url(ENV_VALIDATION_MESSAGES.CRAWLER_URL_INVALID),
   crawlerSharedSecret: z.string().min(1, ENV_VALIDATION_MESSAGES.CRAWLER_SHARED_SECRET_REQUIRED),
   publicBaseUrl: z.string().url(ENV_VALIDATION_MESSAGES.PUBLIC_BASE_URL_INVALID),
+  internalUrl: z.string().url().optional(),
   nodeEnv: z.enum(NODE_ENV_VALUES),
   rateLimitMaxPerHour: z.coerce
     .number()
@@ -23,6 +24,7 @@ const parsed = schema.safeParse({
   crawlerUrl: process.env.CRAWLER_URL,
   crawlerSharedSecret: process.env.CRAWLER_SHARED_SECRET,
   publicBaseUrl: process.env.PUBLIC_BASE_URL,
+  internalUrl: process.env.INTERNAL_URL,
   nodeEnv: process.env.NODE_ENV,
   rateLimitMaxPerHour: process.env.RATE_LIMIT_MAX_PER_HOUR,
 });
