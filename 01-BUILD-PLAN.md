@@ -25,7 +25,7 @@
 - [x] **Spec 05** — API routes work end-to-end — _notes: All 9 ACs verified manually + 57 unit tests passing. POST /api/analyze (cache-check, rate-limit, crawler dispatch), GET /api/report/:id (full/pending serialize), GET /api/report/:id/status (narrow query), POST /api/report-callback (auth, result mapping). Blockers fixed: rate-limit insert before createReport (no orphans), removed running status set (no overwrite), null IP handling skips enforcement. Crawler crash fix: browser.close() errors wrapped, launchBrowser() caught. Code review: 12/12 issues addressed._
 
 ### Frontend
-- [ ] **Spec 06** — Homepage + analyze flow + loading state — _notes:_
+- [x] **Spec 06** — Homepage + analyze flow + loading state — _notes: shadcn v4 (base-nova/neutral) installed manually due to pnpm workspace resolver conflict with shadcn's built-in pnpm add; Button, Input, Card, Sonner components generated; AnalyzeForm client component with useReducer + 5-state discriminated union, prepareUrl() on submit, example chips, toasts for rate-limit/server-error; server shell page.tsx with hero/how-it-works/footer; minimal /r/[id] shell for end-to-end routing; dark mode stripped._
 - [ ] **Spec 07** — Report page renders all sections — _notes:_
 
 ### Ship
