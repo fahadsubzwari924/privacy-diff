@@ -26,7 +26,7 @@
 
 ### Frontend
 - [x] **Spec 06** — Homepage + analyze flow + loading state — _notes: shadcn v4 (base-nova/neutral) installed manually due to pnpm workspace resolver conflict with shadcn's built-in pnpm add; Button, Input, Card, Sonner components generated; AnalyzeForm client component with useReducer + 5-state discriminated union, prepareUrl() on submit, example chips, toasts for rate-limit/server-error; server shell page.tsx with hero/how-it-works/footer; minimal /r/[id] shell for end-to-end routing; dark mode stripped._
-- [ ] **Spec 07** — Report page renders all sections — _notes:_
+- [x] **Spec 07** — Report page renders all sections — _notes: Full report page with hero-stat, metrics-compare, category-chart (CSS-based), company-list, share-button, download-cta, OG image. DualScanView loading state with dual simulated browser panes, rubber-band progress bar, fake request feed, and reveal animation with blocked-count counter. Shared SiteHeader/SiteFooter components extracted. All hard-coded strings moved to constants. Homepage quick-links updated to copilot.cloud.microsoft, flippa.com, omnicalculator.com with hostname labels._
 
 ### Ship
 - [ ] **Spec 08** — Deployed to Railway (web + crawler + Postgres) — _notes:_
