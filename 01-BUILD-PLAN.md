@@ -29,7 +29,7 @@
 - [x] **Spec 07** — Report page renders all sections — _notes: Full report page with hero-stat, metrics-compare, category-chart (CSS-based), company-list, share-button, download-cta, OG image. DualScanView loading state with dual simulated browser panes, rubber-band progress bar, fake request feed, and reveal animation with blocked-count counter. Shared SiteHeader/SiteFooter components extracted. All hard-coded strings moved to constants. Homepage quick-links updated to copilot.cloud.microsoft, flippa.com, omnicalculator.com with hostname labels._
 
 ### Ship
-- [ ] **Spec 08** — Deployed to Railway (web + crawler + Postgres) — _notes:_
+- [x] **Spec 08** — Deployed to Railway (web + crawler + Postgres) — _notes: Docker approach — Dockerfile.web (Next.js standalone, 2-stage), Dockerfile.crawler (playwright:v1.44.0-jammy runtime, pnpm deploy), docker-compose.yml for local testing, .dockerignore, programmatic migrate.ts (CJS, drizzle-orm/migrator), outputFileTracingRoot for monorepo standalone, web start command runs migrations then server._
 - [ ] **Spec 09** — README, demo GIF, Loom video — _notes:_
 
 ## Decision Log
