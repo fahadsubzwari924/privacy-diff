@@ -123,7 +123,7 @@ pnpm --filter web drizzle-kit push
 pnpm dev
 ```
 
-Open [localhost:3000](http://localhost:3000), paste a URL, watch it work.
+Open [Live Product](https://web-production-8b4e2.up.railway.app/), paste a URL, watch it work.
 
 ## Project structure
 
