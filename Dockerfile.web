@@ -5,16 +5,11 @@ RUN npm install -g pnpm@9
 
 WORKDIR /repo
 
-# Copy workspace manifests first for better layer caching on repeated builds
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/shared/package.json ./packages/shared/
-COPY apps/web/package.json ./apps/web/
-COPY apps/crawler/package.json ./apps/crawler/
+# Copy full source first so pnpm wires workspace symlinks against real package
+# directories (node_modules excluded via .dockerignore)
+COPY . .
 
 RUN pnpm install --frozen-lockfile
-
-# Copy full source (node_modules excluded via .dockerignore)
-COPY . .
 
 # Build shared package (required by web)
 RUN pnpm --filter @privacy-diff/shared build
