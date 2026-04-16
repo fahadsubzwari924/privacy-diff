@@ -22,7 +22,7 @@
 ### Backend
 - [x] **Spec 03** — Crawler service runs diff and returns JSON — _notes: Express.js service with POST /crawl, dual Playwright sessions (protected + unprotected), tracker blocking via request interception, webhook callbacks with exponential backoff, SSRF protection, concurrency limits, 27/27 unit tests passing_
 - [x] **Spec 04** — Postgres schema created, reports persist — _notes: Drizzle 0.45 + postgres driver; reports table with cache index (url_hash, week_bucket); report-repository layer isolates all DB calls; url-normalizer, slug-generator, week-bucket utilities; committed SQL migration in src/db/migrations/; 26/26 unit tests passing_
-- [ ] **Spec 05** — API routes work end-to-end — _notes:_
+- [x] **Spec 05** — API routes work end-to-end — _notes: All 9 ACs verified manually + 57 unit tests passing. POST /api/analyze (cache-check, rate-limit, crawler dispatch), GET /api/report/:id (full/pending serialize), GET /api/report/:id/status (narrow query), POST /api/report-callback (auth, result mapping). Blockers fixed: rate-limit insert before createReport (no orphans), removed running status set (no overwrite), null IP handling skips enforcement. Crawler crash fix: browser.close() errors wrapped, launchBrowser() caught. Code review: 12/12 issues addressed._
 
 ### Frontend
 - [ ] **Spec 06** — Homepage + analyze flow + loading state — _notes:_
@@ -42,7 +42,7 @@
 
 > If you have to cut something, log it here so it lands in the README's "v2" section.
 
-- _Example: Skipped screenshot diff to save time; planned for v2._
+- Concurrent submissions: two simultaneous `POST /api/analyze` requests for the same URL within the same week bucket will both miss the cache check and create separate report rows (different slugs due to random suffix). Both will dispatch to the crawler. The result is duplicate work, not data corruption. Fix in v2: add a `UNIQUE` constraint on `(url_hash, week_bucket)` with `INSERT ... ON CONFLICT DO NOTHING` + return the existing row's id.
 
 ## Acceptance for "Done"
 
